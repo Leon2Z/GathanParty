@@ -16,11 +16,9 @@ void UJokerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		FRotator ActorRotation = CurrentPlayerPawn->GetActorRotation();	//得到当前ActorRotation
 		FRotator ControlRotation = CurrentPlayerPawn->GetControlRotation();	//得到当前Pawn的ControlRotation
 
-		//计算混合空间
 		Speed = Velocity.Size();
 		Direction = CalculateDirection(Velocity, CurrentPlayerPawn->GetActorRotation());	//计算速度向量和旋转量之间的夹角
-
-		//计算瞄准偏移
+		
 		FRotator DeltaRotation = ControlRotation - ActorRotation;
 		Yaw = FRotator::NormalizeAxis(DeltaRotation.Yaw);
 		Pitch = FRotator::NormalizeAxis(DeltaRotation.Pitch) * 2.0f;
