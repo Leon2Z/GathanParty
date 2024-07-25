@@ -12,20 +12,18 @@ AJokerCharacterBase::AJokerCharacterBase()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	DefaultFOV = 80.0f;
 	CameraBoomComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoomComp"));
 	CameraBoomComp->SetupAttachment(GetRootComponent());
-	CameraBoomComp->SocketOffset = FVector(0, 35, 0);
-	CameraBoomComp->TargetOffset = FVector(0, 0, 55);
 	CameraBoomComp->bUsePawnControlRotation = true;	//允许跟随角色旋转
-	CameraBoomComp->bEnableCameraRotationLag = true;
-
+	CameraBoomComp->SetRelativeLocation(FVector(0, 50, 50));
+	//CameraBoomComp->bEnableCameraRotationLag = true;
+	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
+	CameraComp->SetupAttachment(CameraBoomComp);
+	CameraComp->FieldOfView = DefaultFOV;
 
 	ThrowWeaponScene = CreateDefaultSubobject<USceneComponent>(TEXT("ThrowWeaponScene"));
 	ThrowWeaponScene->SetupAttachment(GetRootComponent());
-
-	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
-	CameraComp->SetupAttachment(CameraBoomComp);
 	
 	MovementComp = GetCharacterMovement();
 	bUseControllerRotationYaw = true;
@@ -34,7 +32,7 @@ AJokerCharacterBase::AJokerCharacterBase()
 	WalkSpeed = 190;
 	CrouchSpeed = 190;
 
-	DefaultFOV = 90.0f;
+	
 
 	// 网络同步开关
 	SetReplicates(true);
@@ -63,8 +61,8 @@ void AJokerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInput
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AJokerCharacterBase::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AJokerCharacterBase::MoveRight);
-	PlayerInputComponent->BindAxis("Turn", this, &AJokerCharacterBase::AddControllerYawInput);
-	PlayerInputComponent->BindAxis("LookUp", this, &AJokerCharacterBase::AddControllerPitchInput);
+	PlayerInputComponent->BindAxis("Turn", this, &AJokerCharacterBase::Turn);
+	PlayerInputComponent->BindAxis("LookUp", this, &AJokerCharacterBase::LookUp);
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AJokerCharacterBase::StartJump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AJokerCharacterBase::StopJump);
@@ -91,9 +89,20 @@ void AJokerCharacterBase::MoveRight(float Value)
 	AddMovementInput(Direction, Value);
 }
 
+void AJokerCharacterBase::Turn(float Value)
+{
+	AddControllerYawInput(Value);
+}
+
+void AJokerCharacterBase::LookUp(float Value)
+{
+	AddControllerPitchInput(Value);
+}
+
 void AJokerCharacterBase::StartJump()
 {
 	bPressedJump = true;
+	
 }
 
 void AJokerCharacterBase::StopJump()
@@ -116,7 +125,7 @@ void AJokerCharacterBase::SprintPressed()
 
 void AJokerCharacterBase::SprintReleased()
 {
-	MovementComp->MaxWalkSpeed = WalkSpeed;
+	MovementComp->MaxWalkSpeed = RunSpeed;
 }
 
 void AJokerCharacterBase::WalkPressed()
